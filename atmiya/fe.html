@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<title>Fees Management System</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#eef2f3;
+}
+.container{
+    width:90%;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+input,select,button{
+    padding:8px;
+    margin:5px;
+    width:95%;
+}
+button{border:none;color:white;cursor:pointer;}
+.save{background:#007bff;}
+.update{background:#28a745;}
+.delete{background:#dc3545;}
+.clear{background:#6c757d;}
+
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+table,th,td{
+    border:1px solid gray;
+    padding:8px;
+    text-align:center;
+}
+
+/* Receipt */
+.receipt{
+    background:#fff9e6;
+    padding:15px;
+    margin-top:20px;
+    border:2px dashed #333;
+}
+.close-btn{
+    background:red;
+    color:white;
+    border:none;
+    padding:4px 8px;
+    cursor:pointer;
+}
+.search-box{margin:10px 0;}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>Atmiya University Student Fees Management System</h2>
+
+<div class="search-box">
+<input type="text" id="search" placeholder="Search Student Name" onkeyup="searchData()">
+</div>
+
+<input type="hidden" id="index">
+
+<input type="text" id="name" placeholder="Student Name">
+
+<!-- ✅ Mobile Number Added -->
+
+<input type="Number" id="mobile" placeholder="Mobile Number">
+
+<select id="course" onchange="setFees()">
+<option value="">Select Course</option>
+<option value="BA">BA</option>
+<option value="BCOM">BCOM</option>
+<option value="BSC">BSC</option>
+<option value="BBA">BBA</option>
+<option value="BCA">BCA</option>
+<option value="BTECH">BTECH</option>
+<option value="BED">BEd</option>
+<option value="LLB">LLB</option>
+<option value="MA">MA</option>
+<option value="MCOM">MCOM</option>
+<option value="MSC">MSC</option>
+<option value="MBA">MBA</option>
+<option value="MCA">MCA</option>
+<option value="MTECH">MTECH</option>
+<option value="MED">MEd</option>
+<option value="LLM">LLM</option>
+</select>
+
+<input type="number" id="total" placeholder="Total Fees" readonly>
+<input type="number" id="paid" placeholder="Paid Fees">
+
+<button class="save" onclick="saveData()">Save Payment</button>
+<button class="clear" onclick="clearForm()">Clear</button>
+
+<h3>Student Fees List</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Mobile</th>
+<th>Course</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Pending</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="data"></tbody>
+</table>
+
+<div id="receipt"></div>
+</div>
+
+<script>
+let fees = JSON.parse(localStorage.getItem("fees")) || [];
+
+const courseFees = {
+ BA:30000, BCOM:35000, BSC:40000, BBA:50000, BCA:45000,
+ BTECH:70000, BED:25000, LLB:60000,
+ MA:30000, MCOM:35000, MSC:40000,
+ MBA:80000, MCA:60000, MTECH:90000, MED:30000, LLM:65000
+};
+
+const nameInput   = document.getElementById("name");
+const mobileInput = document.getElementById("mobile");
+const courseInput = document.getElementById("course");
+const totalInput  = document.getElementById("total");
+const paidInput   = document.getElementById("paid");
+const indexInput  = document.getElementById("index"); // hidden input
+
+function setFees(){
+ totalInput.value = courseFees[courseInput.value] || "";
+}
+
+/* Current Date & Time */
+function getCurrentDateTime(){
+ return new Date().toLocaleString("en-IN");
+}
+
+/* Fees Last Date (30 days later) */
+function getLastDate(){
+ let d = new Date();
+ d.setDate(d.getDate()+30);
+ return d.toLocaleString("en-IN");
+}
+
+/* Save / Update */
+function saveData(){
+ let name = nameInput.value.trim();
+ let mobile = mobileInput.value.trim();
+ let course = courseInput.value;
+ let total = Number(totalInput.value);
+ let paidNow = Number(paidInput.value);
+
+ if(!name || !mobile || !course || !total || !paidNow){
+  alert("તમામ ફીલ્ડ ભરો");
+  return;
+ }
+
+ let idx = indexInput.value;
+
+ if(idx === ""){ 
+  fees.push({
+   name, mobile, course, total,
+   paid: paidNow,
+   pending: total - paidNow,
+   paymentDate: getCurrentDateTime(),
+   lastDate: getLastDate()
+  });
+ }else{ 
+  idx = Number(idx);
+  fees[idx].name = name;
+  fees[idx].mobile = mobile;
+  fees[idx].course = course;
+  fees[idx].total = total;
+  fees[idx].paid += paidNow;
+  fees[idx].pending = total - fees[idx].paid;
+ }
+ 
+ localStorage.setItem("fees", JSON.stringify(fees));
+ clearForm();
+ showData();
+}
+
+/* Show Table */
+function showData(){
+ let html = "";
+ fees.forEach((v,i)=>{
+  html += `
+  <tr>
+   <td>${v.name}</td>
+   <td>${v.mobile}</td>
+   <td>${v.course}</td>
+   <td>${v.total}</td>
+   <td>${v.paid}</td>
+   <td>${v.pending}</td>
+   <td>
+    <button class="update" onclick="editData(${i})">Edit</button>
+    
+    <button class="delete"onclick="removeData(${i})">Delete</button>
+    <button class="save" onclick="receiptToggle(${i})">Receipt</button>
+   
+   </td>
+  </tr>`;
+ });
+ document.getElementById("data").innerHTML = html;
+}
+
+/* Edit */
+function editData(i){
+ let v = fees[i];
+ nameInput.value = v.name;
+ mobileInput.value = v.mobile;
+ courseInput.value = v.course;
+ totalInput.value = v.total;
+ paidInput.value = "";
+ indexInput.value = i;
+}
+
+/* Receipt */
+function receiptToggle(i){
+ let v = fees[i];
+ document.getElementById("receipt").innerHTML = `
+ <div class="receipt">
+  <h3 style="text-align:center;">Atmiya University</h3>
+  <hr>
+  
+ 
+ <b>Name:</b> ${v.name}<br><hr>
+  <b>Mobile:</b> ${v.mobile}<br><hr>
+  <b>Course:</b> ${v.course}<br><hr>
+  <b>Total Fees:</b> ₹${v.total}<br><hr>
+  <b>Paid Fees:</b> ₹${v.paid}<br><hr>
+  <b>Pending Fees:</b> ₹${v.pending}<br><hr>
+  <b>Payment Date & Time:</b> ${v.paymentDate}<br><hr>
+  
+  <button class="delete"onclick="closeReceipt()">✖ Close</button>
+ </div>`;
+}
+
+function closeReceipt(){
+ document.getElementById("receipt").innerHTML="";
+}
+
+/* Delete */
+function removeData(i){
+ if(confirm("Delete કરવું છે?")){
+  fees.splice(i,1);
+  localStorage.setItem("fees",JSON.stringify(fees));
+  showData();
+  closeReceipt();
+ }
+}
+
+/* Clear Form */
+function clearForm(){
+ nameInput.value="";
+ mobileInput.value="";
+ courseInput.value="";
+ totalInput.value="";
+ paidInput.value="";
+ indexInput.value="";
+}
+
+showData();
+</script>
+
+</body>
+</html>

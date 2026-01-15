@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<title>Student Course Management</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f2f2f2;
+}
+.header{
+    background:#1f5c5c;
+    color:white;
+    padding:10px;
+    text-align:center;
+    font-size:22px;
+}
+.main{
+    padding:15px;
+}
+.form-box{
+    background:white;
+    padding:20px;
+    border-radius:5px;
+}
+label{
+    font-weight:bold;
+}
+input, select{
+    width:100%;
+    padding:8px;
+    margin-bottom:12px;
+}
+button{
+    padding:6px 12px;
+    border:none;
+    color:white;
+    cursor:pointer;
+}
+.save{background:#2196F3;}
+.clear{background:#607D8B;}
+.delete{background:#f44336;}
+
+.search-box{
+    margin:15px 0;
+    width:100%;
+    padding:8px;
+}
+
+.table-box{
+    margin:20px;
+    background:white;
+    padding:15px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    border:1px solid black;
+    padding:6px;
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">TDE Select Course Limited Set</div>
+
+<div class="main">
+<div class="form-box">
+
+    <label>Student Name</label>
+    <input type="text" id="sname">
+
+    <label>Mobile Number</label>
+    <input type="number" id="mobile">
+
+    <label>TDE Select Course</label>
+    <select id="course">
+        <option>Banking Management System</option>
+        <option>Basics of Marketing</option>
+        <option>Fundamentals of Economics</option>
+        <option>Science of Life</option>
+        <option>Basics of Electrical Engineering</option>
+        <option>Cyber Security</option>
+        <option>System Analysis and Design</option>
+        <option>Road Safety Management</option>
+    </select>
+
+    <label>Division</label>
+    <select id="division">
+
+			<option>A1</option>
+			<option>A2</option>
+			<option>B1</option>
+		   <option>B2</option>
+		   <option>C1</option>
+           <option>C2</option>
+	       <option>D1</option>  
+	       <option>D2</option>
+	
+	
+	
+	
+	</select>
+
+    <button class="save" onclick="saveData()">Save</button>
+    <button class="clear" onclick="clearForm()">Clear</button>
+
+</div>
+</div>
+
+<div class="table-box">
+
+<input type="text" id="search" class="search-box"
+placeholder="Search student / course / division..." onkeyup="searchData()">
+
+<table>
+<thead>
+<tr>
+    <th>No</th>
+    <th>Student Name</th>
+    <th>Course</th>
+    <th>Division</th>
+    <th>Mobile</th>
+    <th>Delete</th>
+</tr>
+</thead>
+<tbody id="output"></tbody>
+</table>
+
+</div>
+
+<script>
+// 🔑 IMPORTANT: આ file માટે UNIQUE KEY
+const STORAGE_KEY = "studentData_file1";
+
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+function saveData(){
+    let obj = inputData();
+    if(!obj) return;
+
+    // course limit = 3
+    let count = data.filter(d => d.course === obj.course).length;
+    if(count >= 3){
+        alert("⚠ Course Full (3 Students)");
+        return;
+    }
+
+    data.push(obj);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    showData(data);
+    clearForm();
+}
+
+function showData(list){
+    let out="";
+    list.forEach((d,i)=>{
+        out+=`
+        <tr>
+            <td>${i+1}</td>
+            <td>${d.sname}</td>
+            <td>${d.course}</td>
+            <td>${d.division}</td>
+            <td>${d.mobile}</td>
+            <td>
+                <button class="delete" onclick="deleteData(${i})">Delete</button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById("output").innerHTML = out;
+}
+
+function deleteData(index){
+    if(confirm("Delete record?")){
+        data.splice(index,1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showData(data);
+    }
+}
+
+function clearForm(){
+    document.getElementById("sname").value="";
+    document.getElementById("mobile").value="";
+    document.getElementById("course").selectedIndex=0;
+    document.getElementById("division").selectedIndex=0;
+}
+
+function inputData(){
+    let sname = document.getElementById("sname").value.trim();
+    let mobile = document.getElementById("mobile").value.trim();
+    let course = document.getElementById("course").value;
+    let division = document.getElementById("division").value;
+
+    if(sname==="" || mobile==="" || course==="" || division===""){
+        alert("Badha field bharo");
+        return null;
+    }
+    return {sname, mobile, course, division};
+}
+
+function searchData(){
+    let key = document.getElementById("search").value.toLowerCase();
+    let filtered = data.filter(d =>
+        d.sname.toLowerCase().includes(key) ||
+        d.course.toLowerCase().includes(key) ||
+        d.division.toLowerCase().includes(key) ||
+        d.mobile.includes(key)
+    );
+    showData(filtered);
+}
+
+showData(data);
+</script>
+
+
+
+</body>
+</html>

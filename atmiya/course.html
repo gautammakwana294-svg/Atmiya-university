@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<title>Student Course Management</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f2f2f2;
+}
+.header{
+    background:#1f5c5c;
+    color:white;
+    padding:10px;
+    text-align:center;
+    font-size:22px;
+}
+.main{
+    padding:15px;
+}
+.form-box{
+    background:white;
+    padding:20px;
+    border-radius:5px;
+}
+label{
+    font-weight:bold;
+}
+input, select{
+    width:100%;
+    padding:8px;
+    margin-bottom:12px;
+}
+button{
+    padding:10px 20px;
+    border:none;
+    color:white;
+    cursor:pointer;
+    margin-right:5px;
+}
+.save{background:#2196F3;}
+.update{background:#4CAF50;}
+.delete{background:#F44336;}
+.clear{background:#607D8B;}
+
+.search-box{
+    margin:15px 0;
+    width:100%;
+    padding:8px;
+}
+
+.table-box{
+    margin:20px;
+    background:white;
+    padding:15px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    border:1px solid black;
+    padding:6px;
+    text-align:center;
+}
+tr:hover{
+    background:#eee;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Atmiya University Course and Student Name  </div>
+
+<div class="main">
+<div class="form-box">
+
+    <label>Student Name</label>
+    <input type="text" id="sname">
+
+    <label>Mobile Number</label>
+    <input type="text" id="mobile">
+
+    <label>Course Name</label>
+    <select id="course">
+        <option value="">Select Course</option>
+        <option value="BA">BA (Bachelor of Arts)</option>
+        <option value="BCom">BCom (Bachelor of Commerce)</option>
+        <option value="BSc">BSc (Bachelor of Science)</option>
+        <option value="BBA">BBA (Bachelor of Business Administration)</option>
+        <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+        <option value="BE_BTech">BE / BTech (Engineering)</option>
+        <option value="BEd">BEd (Bachelor of Education)</option>
+        <option value="LLB">LLB (Bachelor of Law)</option>
+
+        <option value="MA">MA (Master of Arts)</option>
+        <option value="MCom">MCom (Master of Commerce)</option>
+        <option value="MSc">MSc (Master of Science)</option>
+        <option value="MBA">MBA (Master of Business Administration)</option>
+        <option value="MCA">MCA (Master of Computer Applications)</option>
+        <option value="ME_MTech">ME / MTech (Engineering)</option>
+        <option value="MEd">MEd (Master of Education)</option>
+        <option value="LLM">LLM (Master of Law)</option>
+    </select>
+
+    <button class="save" onclick="saveData()">Save</button>
+    <button class="update" onclick="updateData()">Update</button>
+    <button class="delete" onclick="deleteData()">Delete</button>
+    <button class="clear" onclick="clearForm()">Clear</button>
+
+</div>
+</div>
+
+<div class="table-box">
+
+<input type="text" id="search" class="search-box"
+placeholder="Search student / course..." onkeyup="searchData()">
+
+<table>
+<thead>
+<tr>
+    <th>No</th>
+    <th>Student Name</th>
+    <th>Course</th>
+    <th>Mobile</th>
+</tr>
+</thead>
+<tbody id="output"></tbody>
+</table>
+
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("studentData")) || [];
+let selectedIndex = -1;
+
+function saveData(){
+    let obj = inputData();
+    if(!obj) return;
+
+    data.push(obj);
+    localStorage.setItem("studentData", JSON.stringify(data));
+    showData(data);
+    clearForm();
+}
+
+function showData(list){
+    let out="";
+    list.forEach((d,i)=>{
+        out+=`
+        <tr onclick="selectRow(${i})">
+            <td>${i+1}</td>
+            <td>${d.sname}</td>
+            <td>${d.courseName}</td>
+            <td>${d.mobile}</td>
+        </tr>`;
+    });
+    document.getElementById("output").innerHTML = out;
+}
+
+function selectRow(i){
+    selectedIndex = i;
+    sname.value = data[i].sname;
+    mobile.value = data[i].mobile;
+    course.value = data[i].courseValue;
+}
+
+function updateData(){
+    if(selectedIndex === -1){
+        alert("Pehla record select karo");
+        return;
+    }
+    let obj = inputData();
+    if(!obj) return;
+
+    data[selectedIndex] = obj;
+    localStorage.setItem("studentData", JSON.stringify(data));
+    showData(data);
+    clearForm();
+}
+
+function deleteData(){
+    if(selectedIndex === -1){
+        alert("Delete mate record select karo");
+        return;
+    }
+    data.splice(selectedIndex,1);
+    localStorage.setItem("studentData", JSON.stringify(data));
+    showData(data);
+    clearForm();
+}
+
+function clearForm(){
+    sname.value="";
+    mobile.value="";
+    course.value="";
+    selectedIndex = -1;
+}
+
+function inputData(){
+    let sname = document.getElementById("sname").value.trim();
+    let mobile = document.getElementById("mobile").value.trim();
+
+    let courseSelect = document.getElementById("course");
+    let courseValue = courseSelect.value;
+    let courseName = courseSelect.options[courseSelect.selectedIndex].text;
+
+    if(sname==="" || mobile==="" || courseValue===""){
+        alert("Badha field bharo");
+        return null;
+    }
+    return {sname, mobile, courseValue, courseName};
+}
+
+function searchData(){
+    let key = search.value.toLowerCase();
+    let filtered = data.filter(d =>
+        d.sname.toLowerCase().includes(key) ||
+        d.courseName.toLowerCase().includes(key) ||
+        d.mobile.includes(key)
+    );
+    showData(filtered);
+}
+
+showData(data);
+</script>
+
+</body>
+</html>
